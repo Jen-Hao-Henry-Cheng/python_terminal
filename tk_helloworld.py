@@ -2,10 +2,20 @@ import tkinter as tk
 
 class MainWindow:
     def __init__(self):
+        # Window
         self.window = tk.Tk()
         self.window.title('Hello world')
         self.window.geometry('380x400')
         self.window.resizable(False, False)
+
+        # Menu
+        self.menu = tk.Menu()
+        self.window.config(menu=self.menu)
+        self.subMenuSetting = tk.Menu(activebackground="green", tearoff=0)
+        self.menu.add_cascade(label="Setting", menu=self.subMenuSetting)
+        self.subMenuSetting.add_command(label="Comport")
+        self.subMenuSetting.add_command(label="Connect")
+        self.subMenuSetting.add_command(label="Disconnect")
 
         self.label = tk.Label(text="my label", font=("Arial", 14, "bold"), padx=5, pady=5, bg="red", fg="yellow")
         self.label.grid(row=2,column=2)
