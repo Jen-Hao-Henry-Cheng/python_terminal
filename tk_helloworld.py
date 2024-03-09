@@ -19,19 +19,20 @@ class MainWindow:
         self.subMenuSetting.add_command(label="Connect")
         self.subMenuSetting.add_command(label="Disconnect")
 
-        self.label = tk.Label(text="my label", font=("Arial", 14, "bold"), padx=5, pady=5, bg="red", fg="yellow")
-        self.label.grid(row=2,column=2)
+        # status Bar
+        self.statusBar = tk.Label(text='status bar', bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.statusBar.pack(side="bottom", fill="x")
 
         self.button = tk.Button(text="Click Me", font=("Arial", 14, "bold"), padx=5, pady=5, bg="blue", fg="light green", command=self.button_clicked)
-        self.button.grid(row=3,column=2)
+        self.button.pack(side="top")
 
         self.window.mainloop()
 
     def open_setting_dialog(self):
-        self.setiing_dialog = comport_dialog.ComportDialog()
+        self.setting_dialog = comport_dialog.ComportDialog()
 
     def button_clicked(self):
-        self.label.config(text="Hello World!")
+        self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud))
 
 
 
