@@ -1,5 +1,5 @@
 import tkinter as tk
-
+import serial
 import comport_dialog
 
 class MainWindow:
@@ -16,8 +16,8 @@ class MainWindow:
         self.subMenuSetting = tk.Menu(activebackground="green", tearoff=0)
         self.menu.add_cascade(label="Setting", menu=self.subMenuSetting)
         self.subMenuSetting.add_command(label="COMPort", command=self.open_setting_dialog)
-        self.subMenuSetting.add_command(label="Connect")
-        self.subMenuSetting.add_command(label="Disconnect")
+        self.subMenuSetting.add_command(label="Connect", command=self.open_serial)
+        self.subMenuSetting.add_command(label="Disconnect", command=self.close_serial)
 
         # status Bar
         self.statusBar = tk.Label(text='status bar', bd=1, anchor=tk.W)
@@ -46,6 +46,20 @@ class MainWindow:
 
     def open_setting_dialog(self):
         self.setting_dialog = comport_dialog.ComportDialog()
+    
+    def open_serial(self):
+        self.serial = serial.Serial()
+        self.serial.port = self.setting_dialog.device_name
+        self.serial.baudrate = self.setting_dialog.baud
+        self.serial.open()
+        # print log in status bar
+        self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud))
+    
+    def close_serial(self):
+        if self.serial.isOpen():
+            self.serial.close()
+            # print log in status bar
+            self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud) + " is closed")
 
     def button_clicked(self):
         self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud))
