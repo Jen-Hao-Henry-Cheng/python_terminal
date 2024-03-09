@@ -30,6 +30,9 @@ class MainWindow:
         self.inputLabel.grid(row=0, column=0)
         self.inputTextBox = tk.Text(self.inputFrame, height=5, width=30, state=tk.NORMAL)
         self.inputTextBox.grid(row=1, column=0)
+        self.sendButton = tk.Button(self.inputFrame, text="Send", state=tk.DISABLED,
+                                    command=self.send_message)
+        self.sendButton.grid(row=1, column=1)
 
         # Output
         self.outputFrame = tk.Frame()
@@ -39,8 +42,6 @@ class MainWindow:
         self.outputTextBox = tk.Text(self.outputFrame, height=5, width=30, state=tk.DISABLED)
         self.outputTextBox.grid(row=1, column=0)
 
-        self.button = tk.Button(text="Click Me", font=("Arial", 14, "bold"), padx=5, pady=5, bg="blue", fg="light green", command=self.button_clicked)
-        self.button.pack(side="top")
 
         self.window.mainloop()
 
@@ -52,17 +53,20 @@ class MainWindow:
         self.serial.port = self.setting_dialog.device_name
         self.serial.baudrate = self.setting_dialog.baud
         self.serial.open()
+        self.sendButton.config(state=tk.NORMAL) # enable the send button
         # print log in status bar
         self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud))
     
     def close_serial(self):
         if self.serial.isOpen():
             self.serial.close()
+            self.sendButton.config(state=tk.DISABLED) # disable the send button
             # print log in status bar
             self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud) + " is closed")
 
-    def button_clicked(self):
-        self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud))
+    def send_message(self):
+        message = self.inputTextBox.get("1.0", "end-1c")
+        self.statusBar.config(text="message: " + message)
 
 
 
