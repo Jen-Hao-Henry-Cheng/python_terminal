@@ -1,5 +1,5 @@
 import tkinter as tk
-import serial
+import serial_port
 import comport_dialog
 
 class MainWindow:
@@ -49,28 +49,22 @@ class MainWindow:
         self.setting_dialog = comport_dialog.ComportDialog()
     
     def open_serial(self):
-        self.serial = serial.Serial()
-        self.serial.port = self.setting_dialog.device_name
-        self.serial.baudrate = self.setting_dialog.baud
+        self.serial = serial_port.SerialPort(self.setting_dialog.device_name, 
+                                             self.setting_dialog.baud)
         self.serial.open()
         self.sendButton.config(state=tk.NORMAL) # enable the send button
         # print log in status bar
         self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud))
     
     def close_serial(self):
-        if self.serial.isOpen():
-            self.serial.close()
-            self.sendButton.config(state=tk.DISABLED) # disable the send button
-            # print log in status bar
-            self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud) + " is closed")
+        self.serial.close()
+        self.sendButton.config(state=tk.DISABLED) # disable the send button
+        # print log in status bar
+        self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud) + " is closed")
 
     def send_message(self):
         message = self.inputTextBox.get("1.0", "end-1c")
         self.statusBar.config(text="message: " + message)
-
-
-
-
 
 
 if __name__ == '__main__':
