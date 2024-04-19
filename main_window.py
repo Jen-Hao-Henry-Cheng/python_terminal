@@ -1,71 +1,62 @@
-import tkinter as tk
-import serial_port
-import comport_dialog
+from PySide6.QtWidgets import QApplication, QMainWindow, QStatusBar
+from PySide6.QtGui import QAction
 
-class MainWindow:
+# import comport_dialog
+
+class MainWindow(QMainWindow):
     def __init__(self):
+        super().__init__()
+
         # Window
-        self.window = tk.Tk()
-        self.window.title('Serial Terminal')
-        self.window.geometry('380x400')
-        self.window.resizable(False, False)
-
+        self.setWindowTitle("Serial Terminal")
+        self.resize(600, 400)
+        
         # Menu
-        self.menu = tk.Menu()
-        self.window.config(menu=self.menu)
-        self.subMenuSetting = tk.Menu(activebackground="green", tearoff=0)
-        self.menu.add_cascade(label="Setting", menu=self.subMenuSetting)
-        self.subMenuSetting.add_command(label="COMPort", command=self.open_setting_dialog)
-        self.subMenuSetting.add_command(label="Connect", command=self.open_serial)
-        self.subMenuSetting.add_command(label="Disconnect", command=self.close_serial)
+        self.__set_menu_bar()
 
-        # status Bar
-        self.statusBar = tk.Label(text='status bar', bd=1, anchor=tk.W)
-        self.statusBar.pack(side="bottom", fill="x")
+        # Status Bar
+        self.setStatusBar(QStatusBar(self))
 
-        # Input
-        self.inputFrame = tk.Frame()
-        self.inputFrame.pack(side="top", fill="x")
-        self.inputLabel = tk.Label(self.inputFrame, text='Input', anchor=tk.W)
-        self.inputLabel.grid(row=0, column=0)
-        self.inputTextBox = tk.Text(self.inputFrame, height=5, width=30, state=tk.NORMAL)
-        self.inputTextBox.grid(row=1, column=0)
-        self.sendButton = tk.Button(self.inputFrame, text="Send", state=tk.DISABLED,
-                                    command=self.send_message)
-        self.sendButton.grid(row=1, column=1)
+    def __set_menu_bar(self):
 
-        # Output
-        self.outputFrame = tk.Frame()
-        self.outputFrame.pack(side="top", fill="x")
-        self.outputLabel = tk.Label(self.outputFrame, text='Output', anchor=tk.W)
-        self.outputLabel.grid(row=0, column=0)
-        self.outputTextBox = tk.Text(self.outputFrame, height=5, width=30, state=tk.DISABLED)
-        self.outputTextBox.grid(row=1, column=0)
+        comport_action = QAction("COMPort", self)
+        comport_action.setStatusTip("Comport setting")
+        comport_action.triggered.connect(self.__open_setting_dialog)
 
+        connect_action = QAction("Connect", self)
+        disconnect_action = QAction("Disconnect", self)
 
-        self.window.mainloop()
+        menu = self.menuBar()
+        setting_menu = menu.addMenu("Setting")
+        setting_menu.addAction(comport_action)
+        setting_menu.addAction(connect_action)
+        setting_menu.addAction(disconnect_action)
 
-    def open_setting_dialog(self):
-        self.setting_dialog = comport_dialog.ComportDialog()
+    def __open_setting_dialog(self):
+        self.statusBar().showMessage("Open setting dialog")
+    #     self.setting_dialog = comport_dialog.ComportDialog()
     
-    def open_serial(self):
-        self.serial = serial_port.SerialPort(self.setting_dialog.device_name, 
-                                             self.setting_dialog.baud)
-        self.serial.open()
-        self.sendButton.config(state=tk.NORMAL) # enable the send button
-        # print log in status bar
-        self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud))
+    # def open_serial(self):
+    #     self.serial = serial_port.SerialPort(self.setting_dialog.device_name, 
+    #                                          self.setting_dialog.baud)
+    #     self.serial.open()
+    #     self.sendButton.config(state=tk.NORMAL) # enable the send button
+    #     # print log in status bar
+    #     self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud))
     
-    def close_serial(self):
-        self.serial.close()
-        self.sendButton.config(state=tk.DISABLED) # disable the send button
-        # print log in status bar
-        self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud) + " is closed")
+    # def close_serial(self):
+    #     self.serial.close()
+    #     self.sendButton.config(state=tk.DISABLED) # disable the send button
+    #     # print log in status bar
+    #     self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud) + " is closed")
 
-    def send_message(self):
-        message = self.inputTextBox.get("1.0", "end-1c")
-        self.statusBar.config(text="message: " + message)
+    # def send_message(self):
+    #     message = self.inputTextBox.get("1.0", "end-1c")
+    #     self.statusBar.config(text="message: " + message)
 
 
 if __name__ == '__main__':
-    MainWindow()
+    app = QApplication([])
+    main_window = MainWindow()
+    main_window.show()
+    app.exec()
