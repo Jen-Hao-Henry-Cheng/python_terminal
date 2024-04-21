@@ -53,6 +53,7 @@ class ComportDialog(QDialog):
     def __select_device(self, deviceText):
         self.device_name = deviceText
         print(f'Device: {self.device_name}')
+
     def __select_baud(self, baudText):
         baudText
         if baudText == "9600":

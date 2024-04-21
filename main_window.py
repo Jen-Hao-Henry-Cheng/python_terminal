@@ -1,21 +1,43 @@
-from PySide6.QtWidgets import QApplication, QMainWindow, QStatusBar
+from PySide6.QtWidgets import (QApplication, QMainWindow, QStatusBar,
+                               QGridLayout, QGroupBox, QLabel,
+                               QTextEdit)
 from PySide6.QtGui import QAction
 
-# import comport_dialog
+import comport_dialog
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # Window
+        ## Window
         self.setWindowTitle("Serial Terminal")
         self.resize(600, 400)
         
-        # Menu
+        ## Menu
         self.__set_menu_bar()
 
-        # Status Bar
+        ## Status Bar
         self.setStatusBar(QStatusBar(self))
+
+        ## Central Widget
+        groupBox = QGroupBox()       
+        layout = QGridLayout()
+        groupBox.setLayout(layout)
+        self.setCentralWidget(groupBox)
+        
+        # Input Screen
+        inputLabel = QLabel("Input")
+        layout.addWidget(inputLabel, 0, 0)
+        self.__input_screen = QTextEdit()
+        layout.addWidget(self.__input_screen, 1, 0)
+        
+        # Output Screen
+        outputLabel = QLabel("Output")
+        layout.addWidget(outputLabel, 2, 0)
+        self.__output_screen = QTextEdit()
+        self.__output_screen.setReadOnly(True)
+        layout.addWidget(self.__output_screen, 3, 0)
+
 
     def __set_menu_bar(self):
 
@@ -33,8 +55,7 @@ class MainWindow(QMainWindow):
         setting_menu.addAction(disconnect_action)
 
     def __open_setting_dialog(self):
-        self.statusBar().showMessage("Open setting dialog")
-    #     self.setting_dialog = comport_dialog.ComportDialog()
+        self.comport_dialog = comport_dialog.ComportDialog()
     
     # def open_serial(self):
     #     self.serial = serial_port.SerialPort(self.setting_dialog.device_name, 
