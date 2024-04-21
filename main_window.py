@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(logMsg)
 
     def __show_message(self, output_message):
-        self.__output_screen.setPlainText(output_message)
+        self.__output_screen.insertPlainText(output_message + "\r\n")
     
     def __send_message(self):
         message = self.__input_screen.toPlainText()
