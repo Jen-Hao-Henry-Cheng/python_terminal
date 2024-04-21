@@ -1,71 +1,102 @@
-import tkinter as tk
-import serial_port
-import comport_dialog
+from PySide6.QtWidgets import (QApplication, QMainWindow, QStatusBar,
+                               QGridLayout, QGroupBox, QLabel,
+                               QTextEdit, QPushButton)
+from PySide6.QtGui import QAction
+from PySide6.QtCore import QByteArray
 
-class MainWindow:
+from comport_dialog import ComportDialog
+from serial_port import SerialPort
+
+class MainWindow(QMainWindow):
     def __init__(self):
-        # Window
-        self.window = tk.Tk()
-        self.window.title('Serial Terminal')
-        self.window.geometry('380x400')
-        self.window.resizable(False, False)
+        super().__init__()
 
-        # Menu
-        self.menu = tk.Menu()
-        self.window.config(menu=self.menu)
-        self.subMenuSetting = tk.Menu(activebackground="green", tearoff=0)
-        self.menu.add_cascade(label="Setting", menu=self.subMenuSetting)
-        self.subMenuSetting.add_command(label="COMPort", command=self.open_setting_dialog)
-        self.subMenuSetting.add_command(label="Connect", command=self.open_serial)
-        self.subMenuSetting.add_command(label="Disconnect", command=self.close_serial)
+        ## Window
+        self.setWindowTitle("Serial Terminal")
+        self.resize(600, 400)
+        
+        ## Menu
+        self.__set_menu_bar()
 
-        # status Bar
-        self.statusBar = tk.Label(text='status bar', bd=1, anchor=tk.W)
-        self.statusBar.pack(side="bottom", fill="x")
+        ## Status Bar
+        self.setStatusBar(QStatusBar(self))
 
-        # Input
-        self.inputFrame = tk.Frame()
-        self.inputFrame.pack(side="top", fill="x")
-        self.inputLabel = tk.Label(self.inputFrame, text='Input', anchor=tk.W)
-        self.inputLabel.grid(row=0, column=0)
-        self.inputTextBox = tk.Text(self.inputFrame, height=5, width=30, state=tk.NORMAL)
-        self.inputTextBox.grid(row=1, column=0)
-        self.sendButton = tk.Button(self.inputFrame, text="Send", state=tk.DISABLED,
-                                    command=self.send_message)
-        self.sendButton.grid(row=1, column=1)
+        ## Central Widget
+        groupBox = QGroupBox()       
+        layout = QGridLayout()
+        groupBox.setLayout(layout)
+        self.setCentralWidget(groupBox)
+        
+        # Input Screen
+        inputLabel = QLabel("Input")
+        layout.addWidget(inputLabel, 0, 0)
+        self.__input_screen = QTextEdit()
+        layout.addWidget(self.__input_screen, 1, 0)
+        # Send Button
+        sendButton = QPushButton("Send")
+        sendButton.clicked.connect(self.__send_message)
+        layout.addWidget(sendButton, 0, 1)
+        # Output Screen
+        outputLabel = QLabel("Output")
+        layout.addWidget(outputLabel, 2, 0)
+        self.__output_screen = QTextEdit()
+        self.__output_screen.setReadOnly(True)
+        layout.addWidget(self.__output_screen, 3, 0)
+        # Clear Button
+        clearButton = QPushButton("Clear")
+        clearButton.clicked.connect(self.__clear_output_screen)
+        layout.addWidget(clearButton, 2, 1)
 
-        # Output
-        self.outputFrame = tk.Frame()
-        self.outputFrame.pack(side="top", fill="x")
-        self.outputLabel = tk.Label(self.outputFrame, text='Output', anchor=tk.W)
-        self.outputLabel.grid(row=0, column=0)
-        self.outputTextBox = tk.Text(self.outputFrame, height=5, width=30, state=tk.DISABLED)
-        self.outputTextBox.grid(row=1, column=0)
+    def __set_menu_bar(self):
+        # Comport action
+        comport_action = QAction("COMPort", self)
+        comport_action.setStatusTip("Comport setting")
+        comport_action.triggered.connect(self.__open_setting_dialog)
+        # Connect action
+        connect_action = QAction("Connect", self)
+        connect_action.triggered.connect(self.__open_serial)
+        # Disconnect action
+        disconnect_action = QAction("Disconnect", self)
+        disconnect_action.triggered.connect(self.__close_serial)
 
+        menu = self.menuBar()
+        setting_menu = menu.addMenu("Setting")
+        setting_menu.addAction(comport_action)
+        setting_menu.addAction(connect_action)
+        setting_menu.addAction(disconnect_action)
 
-        self.window.mainloop()
-
-    def open_setting_dialog(self):
-        self.setting_dialog = comport_dialog.ComportDialog()
+    def __open_setting_dialog(self):
+        self.__comport_dialog = ComportDialog()
     
-    def open_serial(self):
-        self.serial = serial_port.SerialPort(self.setting_dialog.device_name, 
-                                             self.setting_dialog.baud)
-        self.serial.open()
-        self.sendButton.config(state=tk.NORMAL) # enable the send button
+    def __open_serial(self):
+        self.__serial = SerialPort(self.__comport_dialog.device_name, 
+                                   self.__comport_dialog.baud)
+        self.__serial.connect_read_callback(self.__show_message)
+        self.__serial.open()
         # print log in status bar
-        self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud))
-    
-    def close_serial(self):
-        self.serial.close()
-        self.sendButton.config(state=tk.DISABLED) # disable the send button
+        logMsg = "device name: " + self.__comport_dialog.device_name + ", baud: " + str(self.__comport_dialog.baud)
+        self.statusBar().showMessage(logMsg)
+        
+    def __close_serial(self):
+        self.__serial.close()
+        # TODO disable dissconnect button and send button
         # print log in status bar
-        self.statusBar.config(text="device name: " + self.setting_dialog.device_name + ", baud: " + str(self.setting_dialog.baud) + " is closed")
+        logMsg = "device name: " + self.__comport_dialog.device_name + ", baud: " + str(self.__comport_dialog.baud) + " is closed"
+        self.statusBar().showMessage(logMsg)
 
-    def send_message(self):
-        message = self.inputTextBox.get("1.0", "end-1c")
-        self.statusBar.config(text="message: " + message)
+    def __show_message(self, output_message):
+        self.__output_screen.insertPlainText(output_message + "\r\n")
+    
+    def __send_message(self):
+        message = self.__input_screen.toPlainText()
+        self.__serial.write(QByteArray(message.encode()))
+    
+    def __clear_output_screen(self):
+        self.__output_screen.clear()
 
 
 if __name__ == '__main__':
-    MainWindow()
+    app = QApplication([])
+    main_window = MainWindow()
+    main_window.show()
+    app.exec()
