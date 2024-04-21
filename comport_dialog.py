@@ -1,59 +1,63 @@
-import tkinter as tk
-from tkinter import ttk
-import serial.tools.list_ports
+from PySide6.QtWidgets import QDialog, QGridLayout, QLabel, QComboBox, QPushButton
+from PySide6.QtSerialPort import QSerialPortInfo
 
-class ComportDialog:
+class ComportDialog(QDialog):
     def __init__(self):
+        super().__init__()
+
         self.device_name = "" # device name
         self.baud = 9600 # baud rate
 
-        self.dialog = tk.Toplevel()
-        self.dialog.title("COM Port")
+        self.setWindowTitle("COM Port")
 
-        # Lables
-        self.deviceLabel = tk.Label(self.dialog, text="Port")
-        self.deviceLabel.grid(row=0,column=0)
-        self.baudLabel = tk.Label(self.dialog, text="Baud")
-        self.baudLabel.grid(row=2,column=0)
+        # Layout
+        self.__layout = QGridLayout()
+        self.setLayout(self.__layout)
 
-        # Device List
-        self.deviceList = ttk.Combobox(self.dialog, state="readonly")
-        self.deviceList.grid(row=0,column=1)
-        self.deviceList.bind("<<ComboboxSelected>>", self.select_device)
-        self.refresh_comports() # init device list
+        ## Device selection
+        # device label
+        deviceLabel = QLabel("Port")
+        self.__layout.addWidget(deviceLabel, 0, 0)
+        # device combo
+        self.__device_combo = QComboBox()
+        self.__device_combo.currentTextChanged.connect(self.__select_device)
+        self.__layout.addWidget(self.__device_combo, 0, 1)
+        # refresh button
+        refreshButton = QPushButton("Refresh")
+        refreshButton.clicked.connect(self.__refresh_comports)
+        self.__layout.addWidget(refreshButton, 1, 1)
 
-        # Refresh button
-        self.refreshButton = tk.Button(self.dialog, text="Refresh", command=self.refresh_comports)
-        self.refreshButton.grid(row=1,column=0,columnspan=2)
+        ## Baud selection
+        # Baud label
+        baudLabel = QLabel("Baud")
+        self.__layout.addWidget(baudLabel, 2, 0)
+        # Baud combobox
+        self.__baud_combo = QComboBox()
+        self.__baud_combo.addItems(["9600", "38400", "115200"])
+        self.__baud_combo.currentTextChanged.connect(self.__select_baud)
+        self.__layout.addWidget(self.__baud_combo, 2, 1)
 
-        # Baud list
-        self.baudList = ttk.Combobox(self.dialog,
-                                     state="readonly",
-                                     values=["9600", "115200"])
-        self.baudList.grid(row=2,column=1)
-        self.baudList.bind("<<ComboboxSelected>>", self.select_baud)
+        ## Init
+        self.__refresh_comports()
 
-        # close button
-        self.closeButton = tk.Button(self.dialog, text="Close", command=self.close_dialog)
-        self.closeButton.grid(row=3,column=0,columnspan=2)
+        ## exec
+        self.exec()
 
     # SLOT methods
-    def refresh_comports(self):
-        ports = list(serial.tools.list_ports.comports()) # get current devices
-        devices = []
-        for port in ports:
-            devices.append(port.device)
-        self.deviceList['values'] = devices
+    def __refresh_comports(self):
+        serialPortInfos = QSerialPortInfo.availablePorts()
+        self.__device_combo.clear()
+        for portInfo in serialPortInfos:
+            self.__device_combo.addItem(portInfo.portName())
     
-    def select_device(self, event):
-        self.device_name = self.deviceList.get()
-    
-    def select_baud(self, event):
-        selected_baud = self.baudList.get()
-        if selected_baud == "9600":
+    def __select_device(self, deviceText):
+        self.device_name = deviceText
+        print(f'Device: {self.device_name}')
+    def __select_baud(self, baudText):
+        baudText
+        if baudText == "9600":
             self.baud = 9600
-        elif selected_baud == "115200":
+        if baudText == "38400":
+            self.baud = 38400
+        elif baudText == "115200":
             self.baud = 115200
-
-    def close_dialog(self):
-        self.dialog.destroy()
