@@ -44,6 +44,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.__output_screen, 3, 0)
         # Clear Button
         clearButton = QPushButton("Clear")
+        clearButton.clicked.connect(self.__clear_output_screen)
         layout.addWidget(clearButton, 2, 1)
 
     def __set_menu_bar(self):
@@ -76,7 +77,6 @@ class MainWindow(QMainWindow):
         logMsg = "device name: " + self.__comport_dialog.device_name + ", baud: " + str(self.__comport_dialog.baud)
         self.statusBar().showMessage(logMsg)
         
-            
     def __close_serial(self):
         self.__serial.close()
         # TODO disable dissconnect button and send button
@@ -90,7 +90,9 @@ class MainWindow(QMainWindow):
     def __send_message(self):
         message = self.__input_screen.toPlainText()
         self.__serial.write(QByteArray(message.encode()))
-        print(f'message: {message}')
+    
+    def __clear_output_screen(self):
+        self.__output_screen.clear()
 
 
 if __name__ == '__main__':
